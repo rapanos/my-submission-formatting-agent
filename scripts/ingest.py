@@ -16,6 +16,12 @@ import argparse
 from pathlib import Path
 from typing import Optional
 
+try:
+    import pypandoc as _pypandoc
+    _PANDOC_BIN = _pypandoc.get_pandoc_path()
+except Exception:
+    _PANDOC_BIN = 'pandoc'
+
 
 PANDOC_FROM_MAP = {
     '.docx': 'docx',
@@ -38,7 +44,7 @@ def run_pandoc(source: Path, output: Path, from_format: str, bibliography: Optio
     bib_args = ['--bibliography', str(bibliography)] if bibliography else []
 
     cmd = [
-        'pandoc',
+        _PANDOC_BIN,
         '--from', from_format,
         '--to', 'markdown',
         *PANDOC_MARKDOWN_OPTIONS,
@@ -111,7 +117,7 @@ def ingest(source_path: Path, output_path: Path, bibliography: Optional[Path] = 
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     print(f"Ingesting: {source_path}")
-    print(f"Format: {suffix} → markdown")
+    print(f"Format: {suffix} -> markdown")
     print(f"Output: {output_path}")
 
     if suffix == '.pdf':

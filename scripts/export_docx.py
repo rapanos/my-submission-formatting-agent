@@ -12,6 +12,12 @@ import subprocess
 import argparse
 from pathlib import Path
 
+try:
+    import pypandoc as _pypandoc
+    _PANDOC_BIN = _pypandoc.get_pandoc_path()
+except Exception:
+    _PANDOC_BIN = 'pandoc'
+
 
 DEFAULT_REFERENCE = Path('templates/reference.docx')
 
@@ -61,7 +67,7 @@ def export_docx(
                     print(f"Citation style: {csl.stem}")
 
     cmd = [
-        'pandoc',
+        _PANDOC_BIN,
         '--from', 'markdown',
         '--to', 'docx',
         *ref_args,
@@ -100,7 +106,7 @@ def export_docx(
         size_kb = output.stat().st_size / 1024
         print(f"Success: {output.name} ({size_kb:.1f} KB)")
         if mathml:
-            print("MathML: enabled (LaTeX math → native OOXML equations)")
+            print("MathML: enabled (LaTeX math -> native OOXML equations)")
         if size_kb < 5:
             print("Warning: Output file is very small — check for conversion issues.", file=sys.stderr)
         return True

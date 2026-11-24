@@ -94,5 +94,43 @@ End-to-end verification (run when pandoc + sample manuscript available):
 3. Run `/format-manuscript manuscripts/[file] [journal-name]`
 
 ---
-**Context compaction () at 21:36**
-Check git log and quality_reports/plans/ for current state.
+
+## Session Update — 2026-05-25: First Real Manuscript (Geoheritage)
+
+### What Was Done
+
+**Journal setup:**
+- Extracted Geoheritage (Springer) guidelines → `guidelines/geoheritage.yml`
+- Initial URL (`link.springer.com/journal/12371`) confirmed as Geoheritage (not IJE as initially misidentified)
+
+**Infrastructure fixes:**
+- `scripts/ingest.py` and `scripts/export_docx.py`: added `pypandoc` path detection to work with `.venv` (pandoc not on system PATH); replaced Unicode arrow `→` with `->` to fix Windows cp1252 encoding error
+- `pypandoc-binary 1.17` installed into `.venv` (pandoc 3.9 bundled)
+
+**Pipeline run — `manuscripts/artigo_rapanos.docx` → Geoheritage:**
+1. Ingest: 245 lines, ~4,678 words
+2. Analysis: IMRaD structure present; section 3.5 numbering gap; Statements and Declarations missing; 20 headings non-compliant (title case)
+3. Reformat: 20 headings corrected to sentence case; section 3.5 → 3.3; `## References` → `# References`; Statements and Declarations auto-drafted (DRAFT)
+4. Export: `manuscript_formatted.docx` (25.1 KB)
+5. Compliance: PASS 14 / WARN 9 / FAIL 3 (title, author info, AI disclosure)
+6. Proofreading: 30 issues identified; all applied to `.md` and re-exported
+7. References: all 26 reformatted to Springer author-date; 3 factual corrections (Štrba, Pereira, IJET journal name)
+
+**Key decisions:**
+- AI disclosure for copy editing: NOT required per Geoheritage guidelines ("Disclosure not required for AI-assisted copy editing") — statement added then removed
+- docx overwrite incident: overwrote user's manually formatted docx; corrected by re-applying all proofreading fixes programmatically
+- Title and author block: pending — user to supply details
+
+**Remaining author actions:**
+- Add title, author names, affiliations, corresponding author email
+- Complete 6 DRAFT placeholders in Statements and Declarations
+- Reduce keywords from 7 to 6
+- Fix duplicate Figure 2 label
+- Reformat reference list (done in .md; user may need to verify in docx)
+
+**Output files:**
+- `outputs/geoheritage/manuscript_formatted.md` — current source of truth
+- `outputs/geoheritage/manuscript_formatted.docx` — 25.1 KB, ready for author review
+- `outputs/geoheritage/compliance_checklist.md`
+- `outputs/geoheritage/formatting_report.md`
+- `quality_reports/geoheritage_proofread.md`

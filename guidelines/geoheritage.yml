@@ -1,0 +1,448 @@
+# Geoheritage (Springer) - Author Guidelines
+# Extracted from Springer submission guidelines page
+# Primary source: https://link.springer.com/journal/12371/submission-guidelines
+#
+# Schema documentation:
+#   null  = field not specified in journal guidelines
+#   true  = yes / required
+#   false = no / not required
+#
+# Extraction note: The Springer page returned a login redirect (303) during
+# direct fetch. Requirements were assembled from:
+#   1. Successful cached/rendered fetch of the Springer guidelines page content
+#      (cookies_not_supported fallback path returned full guidelines text)
+#   2. Paperpile citation style documentation for Geoheritage
+#   3. Springer Nature general author guidelines (applies to all SN journals)
+# All fields marked with confidence level in extraction_confidence section below.
+
+# ------------------------------------------------------------------
+# Identification
+# ------------------------------------------------------------------
+journal: "Geoheritage"
+abbreviation: "geoheritage"
+url: "https://link.springer.com/journal/12371/submission-guidelines"
+issn: "1867-2477"
+publisher: "Springer Nature"
+extracted_date: "2026-05-25"
+article_type: "General (applies to all article types unless noted)"
+notes: >
+  Springer link.springer.com requires cookie-based authentication and redirects
+  unauthenticated fetches. Guidelines content was successfully obtained via the
+  fallback redirect path. Verify any null fields directly at the journal URL.
+  The journal uses single-blind peer review (author identities known to reviewers).
+
+# ------------------------------------------------------------------
+# Manuscript Formatting
+# ------------------------------------------------------------------
+formatting:
+  file_format: "Word (.docx or .doc) or LaTeX"
+  font: "10-point Times Roman or similar plain font"
+  line_spacing: null
+  margins: null
+  page_numbers: "required (auto-numbered)"
+  indentation: "tab stops (no manual spaces)"
+  emphasis: "italics only"
+  notes: >
+    Manuscripts with mathematical content may be submitted in LaTeX.
+    Use a normal, plain font. Do not use auto-formatting features for
+    lists or headings beyond what is necessary.
+
+# ------------------------------------------------------------------
+# Sections Required (recommended order)
+# ------------------------------------------------------------------
+# Geoheritage follows standard Springer article structure.
+# Section order follows the Springer Nature conventions extracted from guidelines.
+sections_required:
+  - name: "Title"
+    level: 0
+    position: 1
+    required: true
+    word_limit: null
+    notes: null
+
+  - name: "Author information"
+    level: 0
+    position: 2
+    required: true
+    word_limit: null
+    notes: "Affiliations, corresponding author contact details"
+
+  - name: "Abstract"
+    level: 0
+    position: 3
+    required: true
+    word_limit: 250
+    notes: "150 to 250 words; unstructured; must not contain undefined abbreviations or unspecified references"
+
+  - name: "Keywords"
+    level: 0
+    position: 4
+    required: true
+    word_limit: null
+    notes: "4 to 6 keywords for indexing purposes"
+
+  - name: "Introduction"
+    level: 1
+    position: 5
+    required: true
+    word_limit: null
+    notes: null
+
+  - name: "Main body"
+    level: 1
+    position: 6
+    required: true
+    word_limit: null
+    notes: >
+      Up to 3 levels of displayed headings permitted. Section names within
+      the body (e.g., Study Area, Methods, Results, Discussion) are
+      author-defined based on article type and content.
+
+  - name: "Conclusions"
+    level: 1
+    position: 7
+    required: false
+    word_limit: null
+    notes: "Recommended but not explicitly mandated as a standalone section"
+
+  - name: "Statements and Declarations"
+    level: 1
+    position: 8
+    required: true
+    word_limit: null
+    notes: >
+      Must be included with all submissions. Covers: Funding, Conflicts
+      of interest/Competing interests, Ethics approval, Consent to
+      participate, Consent to publish, Availability of data and materials,
+      Code availability, Author contributions. Sections not applicable
+      should include the heading and state "Not applicable".
+
+  - name: "Acknowledgments"
+    level: 1
+    position: 9
+    required: false
+    word_limit: null
+    notes: "Optional; place before References"
+
+  - name: "References"
+    level: 1
+    position: 10
+    required: true
+    word_limit: null
+    notes: "Alphabetical order by first author surname; see references section for full style"
+
+  - name: "Tables"
+    level: 1
+    position: 11
+    required: false
+    word_limit: null
+    notes: "Placed after References; each table on a separate page with caption"
+
+  - name: "Figures and captions"
+    level: 1
+    position: 12
+    required: false
+    word_limit: null
+    notes: "Figure captions provided in manuscript text (not embedded in figure files)"
+
+  - name: "Supplementary Information"
+    level: 1
+    position: 13
+    required: false
+    word_limit: null
+    notes: >
+      Optional. Reference in text as 'Online Resource' with consecutive
+      numbering (e.g., Online Resource 1). Submit simultaneously with
+      manuscript. Supported formats: PDF, video (mp4, mov, avi, wmv up
+      to 2 GB), audio, spreadsheets (.csv, .xlsx), specialized formats.
+
+# ------------------------------------------------------------------
+# Abstract
+# ------------------------------------------------------------------
+abstract:
+  structured: false
+  structure: null
+  word_limit: 250
+  word_minimum: 150
+  format: "single unstructured paragraph"
+  notes: >
+    150 to 250 words. Unstructured (no required sub-headings).
+    Must not contain undefined abbreviations or unspecified references.
+    Should be self-contained and suitable for abstracting services.
+
+# ------------------------------------------------------------------
+# Keywords
+# ------------------------------------------------------------------
+keywords:
+  required: true
+  count_min: 4
+  count_max: 6
+  notes: "4 to 6 keywords for indexing purposes"
+
+# ------------------------------------------------------------------
+# Headings
+# ------------------------------------------------------------------
+headings:
+  style: "sentence case"
+  max_levels: 3
+  notes: >
+    Journal states "no more than three levels of displayed headings."
+    Springer Nature house style uses sentence case for headings (only
+    first word and proper nouns capitalized). Heading case not explicitly
+    stated in the Geoheritage-specific guidelines; sentence case is the
+    Springer default and is inferred from published articles.
+    Confidence: medium.
+
+# ------------------------------------------------------------------
+# Word / Length Limit
+# ------------------------------------------------------------------
+word_limit:
+  total: null
+  excludes: null
+  notes: >
+    No explicit word limit stated in the Geoheritage submission guidelines.
+    Springer Nature's general policy does not impose a universal word limit;
+    manuscripts should be "as concise as possible." No article-type-specific
+    limits were found. Authors should verify with the editorial office if
+    concerned about length.
+
+# ------------------------------------------------------------------
+# Figures
+# ------------------------------------------------------------------
+figures:
+  max_count: null
+  format: "EPS (preferred for vector graphics) or TIFF (preferred for halftones); MSOffice files accepted"
+  resolution_halftone: "300 DPI minimum"
+  resolution_line_art: "1200 DPI minimum"
+  resolution_combination: "600 DPI minimum"
+  color_mode: null
+  font_in_figures: "Helvetica or Arial (sans serif), 2-3 mm (8-12 pt) lettering"
+  naming_convention: "Fig1.eps, Fig2.tiff, etc."
+  parts: "lowercase letters (a, b, c)"
+  size_single_column: "84 mm wide"
+  size_double_column: "174 mm wide"
+  max_height: "234 mm"
+  captions: >
+    Captions are written in the manuscript file (not embedded in figure file).
+    Format: bold 'Fig.' followed by bold figure number, then caption text.
+    No punctuation after figure number; no period at caption end.
+  notes: >
+    Figures must be cited consecutively in text. No explicit maximum count
+    stated. Scanned line drawings in bitmap format require minimum 1200 dpi.
+    For large journals (Geoheritage): 84 mm or 174 mm wide, max 234 mm tall.
+    AI-generated or AI-altered images are subject to disclosure requirements.
+
+# ------------------------------------------------------------------
+# Tables
+# ------------------------------------------------------------------
+tables:
+  max_count: null
+  format: "editable text (not images)"
+  numbering: "Arabic numerals, cited consecutively in text"
+  captions: "required; explain all components of the table"
+  footnotes: "superscript lowercase letters or asterisks"
+  notes: >
+    No explicit maximum count stated. Tables should be placed after
+    References in the manuscript file, one table per page.
+
+# ------------------------------------------------------------------
+# References
+# ------------------------------------------------------------------
+references:
+  style: "Springer author-date (name-year)"
+  style_description: >
+    Author-date (name-year) in-text citations. Reference list ordered
+    alphabetically by first author surname, then chronologically for
+    multiple works by the same author.
+  in_text_format: >
+    Single author: (Hernando 2008)
+    Two authors: (Wolf and Anderegg 2011)
+    Three or more authors: (Schenk et al. 2001)
+    Multiple references: (Hernando 2008; Wolf and Anderegg 2011)
+  reference_list_format:
+    journal_article: >
+      Fan Y, Li H, Miguez-Macho G (2013) Global patterns of groundwater
+      table depth. Science 339:940-943.
+      [Surname Initials (Year) Title. Journal Abbrev Volume:Pages. DOI]
+    book: >
+      Belsey C (2011) A Future for Criticism. Wiley-Blackwell, Oxford, UK
+    book_chapter: >
+      Fujii JI (2011) Chapter title. In: Dehmer M (ed) Book Title.
+      Publisher, City, pp 105-136
+  doi: "Always include DOIs as full DOI links (https://doi.org/...)"
+  journal_abbreviation: "Use ISSN List of Title Word Abbreviations (LTWA)"
+  max_count: null
+  notes: >
+    No explicit maximum reference count stated. Alphabetical ordering by
+    first author surname; chronological ordering within same-author group.
+    For works by the same author in the same year, append a, b, c to the year.
+    Include all authors; use "et al" only for very lengthy author lists.
+    Reference list must not contain unpublished data ("data not shown") as
+    citable references.
+
+# ------------------------------------------------------------------
+# Special Requirements
+# ------------------------------------------------------------------
+special_requirements:
+  - name: "Statements and Declarations"
+    required: true
+    notes: >
+      Must appear in all submissions under the heading 'Statements and
+      Declarations'. Submissions missing relevant declarations will be
+      returned as incomplete. For sections not applicable, include the
+      heading and write 'Not applicable'. Required sub-sections below.
+
+  - name: "Funding statement"
+    required: true
+    notes: >
+      Disclose all funding sources. If no funding received, state:
+      "The authors did not receive support from any organization for
+      the submitted work." Include funder name and grant numbers.
+      Placed within Statements and Declarations.
+
+  - name: "Conflicts of interest / Competing interests"
+    required: true
+    notes: >
+      Authors must disclose financial or non-financial interests directly
+      or indirectly related to the submitted work. Reporting window:
+      interests within the last 3 years of beginning the work.
+      Categories: research grants, employment, financial interests
+      (stocks, consultation fees, patents), non-financial interests
+      (board positions, mentoring, professional relationships).
+      Placed within Statements and Declarations.
+
+  - name: "Ethics approval"
+    required: null
+    notes: >
+      Required when research involves human participants or animals.
+      Must include ethics committee approval reference. Placed within
+      Statements and Declarations. Write 'Not applicable' if not relevant.
+
+  - name: "Consent to participate"
+    required: null
+    notes: >
+      Required for research involving human participants. Placed within
+      Statements and Declarations. Write 'Not applicable' if not relevant.
+
+  - name: "Consent to publish"
+    required: null
+    notes: >
+      Required when manuscript includes identifiable information about
+      individuals. Placed within Statements and Declarations.
+      Write 'Not applicable' if not relevant.
+
+  - name: "Data availability statement"
+    required: false
+    notes: >
+      Type 1 research data policy: journal encourages authors, where
+      possible and applicable, to deposit data in a public repository.
+      A data availability statement is encouraged but not mandated.
+      Placed within Statements and Declarations.
+
+  - name: "Code availability"
+    required: false
+    notes: >
+      Encouraged where applicable. Placed within Statements and Declarations.
+      Write 'Not applicable' if not relevant.
+
+  - name: "Author contributions"
+    required: false
+    notes: >
+      Recommended. Describe each author's contribution. Placed within
+      Statements and Declarations. Not explicitly mandated in extracted
+      guidelines; confidence: medium.
+
+  - name: "AI / LLM use disclosure"
+    required: true
+    notes: >
+      Large Language Models (LLMs) do not satisfy authorship criteria.
+      Any use of LLMs in manuscript preparation must be documented in the
+      Methods section (or equivalent). Disclosure not required for
+      AI-assisted copy editing. AI-generated or AI-altered images must
+      also be disclosed.
+
+  - name: "Cover letter"
+    required: false
+    notes: >
+      No formal cover letter requirements stated in the extracted
+      guidelines. Authors should mention any re-use of material and
+      note any unpublished material (e.g., preprints) in correspondence
+      to the editor. Confidence: medium.
+
+  - name: "Permissions for previously published material"
+    required: true
+    notes: >
+      Authors must obtain permission from copyright owner(s) for both
+      print and online format for any previously published material
+      (text, figures, tables) included in the manuscript.
+
+  - name: "Plagiarism screening"
+    required: null
+    notes: >
+      Journal may use software to screen for plagiarism. Not a submission
+      action required from authors, but authors must ensure originality.
+
+  - name: "Single submission"
+    required: true
+    notes: >
+      Simultaneous submission to multiple journals is not permitted.
+      Work must be original and unpublished (except translations or
+      expansions of conference papers with disclosure). Salami-slicing
+      (dividing a single study into multiple submissions) is not permitted.
+
+# ------------------------------------------------------------------
+# Peer Review
+# ------------------------------------------------------------------
+peer_review:
+  type: "single-blind"
+  notes: "Author identities are known to reviewers; reviewer identities not revealed to authors"
+
+# ------------------------------------------------------------------
+# Supplementary Information
+# ------------------------------------------------------------------
+supplementary_information:
+  allowed: true
+  reference_label: "Online Resource"
+  numbering: "consecutive (Online Resource 1, Online Resource 2, ...)"
+  formats:
+    - "PDF"
+    - "Video: mp4, mov, avi, wmv (max 2 GB)"
+    - "Audio"
+    - "Spreadsheets: .csv, .xlsx"
+    - "Specialized formats"
+  notes: >
+    Cite in text as 'Online Resource N'. Supply descriptive captions.
+    Submit simultaneously with the manuscript.
+
+# ------------------------------------------------------------------
+# Extraction Confidence
+# ------------------------------------------------------------------
+extraction_confidence:
+  high:
+    - "Abstract: 150-250 words, unstructured"
+    - "Keywords: 4-6 required"
+    - "Reference style: Springer author-date (name-year), alphabetical"
+    - "Heading levels: maximum 3"
+    - "Figure resolution: 300 DPI halftone, 1200 DPI line art, 600 DPI combination"
+    - "Figure formats: EPS preferred (vector), TIFF preferred (halftone)"
+    - "Declarations section: required with all submissions"
+    - "Funding statement: required"
+    - "Conflicts of interest: required (3-year window)"
+    - "AI/LLM disclosure: required in Methods"
+    - "Permissions for reused material: required"
+    - "Single-blind peer review"
+    - "Supplementary material: labelled as Online Resource"
+  medium:
+    - "Heading style: sentence case (Springer default; not explicitly stated for Geoheritage)"
+    - "Section order: standard Springer structure; not rigidly mandated beyond Declarations placement"
+    - "Author contributions: recommended but not explicitly required"
+    - "Cover letter: not formally specified; informal guidance only"
+    - "Data availability: encouraged (Type 1 policy) but not hard-required"
+    - "Figure lettering: Helvetica or Arial, 8-12pt (from Springer general guidelines)"
+  low:
+    - "Total word limit: none found; verify with editorial office for very long manuscripts"
+    - "Maximum figure count: not stated"
+    - "Maximum table count: not stated"
+    - "Maximum reference count: not stated"
+    - "Ethics statement: required when applicable but triggering conditions not fully detailed"
+    - "Consent statements: required when applicable; conditions inferred from Springer policy"
