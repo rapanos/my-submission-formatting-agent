@@ -2,6 +2,7 @@
 paths:
   - "outputs/**"
   - "guidelines/**"
+  - "revisions/**"
 ---
 
 # Quality Gates & Scoring Rubrics
@@ -26,6 +27,27 @@ paths:
 | Major | Citation format inconsistency | -5 |
 | Minor | Minor heading case inconsistency | -2 |
 | Minor | Trailing whitespace / formatting artifacts | -1 per instance |
+
+## Response-to-Reviewers Rubric (`--rubric response`)
+
+Scores `revisions/[journal]/R[n]/response_to_reviewers.md` against `comment_matrix.md` and `manuscript_revised.md` (siblings by default; override with `--matrix` / `--manuscript`).
+
+| Severity | Issue | Deduction |
+|----------|-------|-----------|
+| Critical | Claim in letter not found in revised manuscript (`check_response_claims` major verdict) | -25 per claim |
+| Critical | `<!-- REVISION id -->` in manuscript for a comment not approved in the matrix | -25 per comment |
+| Critical | Comment in matrix with no response block | -15 per comment |
+| Critical | Unbalanced DRAFT (letter) or REVISION (manuscript) markers | -10 |
+| Major | Block missing `**Response:**` or `**Changes in the manuscript:**` | -5 per block |
+| Major | Marked Addressed/Partially but no manuscript change cited | -5 |
+| Major | Comment still BLOCKED / response pending | -5 per comment |
+| Major | Approved + addressed comment with no REVISION marker in manuscript | -5 |
+| Major | Response block whose ID is not in the matrix | -5 |
+| Minor | Same opener used 3+ times | -2 per opener |
+| Minor | `§` symbol, editing-mechanism language (grep, "v2 adds", FIX-n) | -1 each |
+| Minor | Quoted text only approximately matches (check by eye) | -1 each |
+
+A single fabricated claim or unapproved edit drops the letter below the commit gate by itself.
 
 ## Scoring Interpretation
 

@@ -12,6 +12,7 @@
 - **Verify after** -- run ingest + export and confirm outputs at end of every task
 - **Never alter scientific content** -- reformat only; flag any content-touching changes for author review
 - **Draft markers required** -- auto-drafted sections MUST be tagged `<!-- DRAFT: requires author review -->`
+- **Revisions are the one bounded exception** -- reviewer-driven edits only with author approval, only in `revisions/`, wrapped in `<!-- REVISION id -->` (see `.claude/rules/revision-handling.md`)
 - **Quality gates** -- nothing ships below 80/100
 - **[LEARN] tags** -- when corrected, save `[LEARN:category] wrong → right` to MEMORY.md
 
@@ -27,6 +28,8 @@ my-submission-formatting-agent/
 ├── Figures/                     # Figures and diagrams
 ├── manuscripts/                 # Input manuscripts (read-only originals)
 ├── guidelines/                  # Parsed journal requirements (.yml)
+├── revisions/                   # Peer-review rounds (gitignored)
+│   └── [journal-name]/R1/       # decision_letter, comment_matrix, manuscript_revised, response letter
 ├── outputs/                     # Formatted outputs per journal
 │   └── [journal-name]/
 │       ├── working.md           # Normalized markdown (working copy)
@@ -34,7 +37,7 @@ my-submission-formatting-agent/
 │       ├── manuscript_formatted.md
 │       └── formatting_report.md
 ├── docs/                        # GitHub Pages
-├── scripts/                     # ingest.py, export_docx.py, quality_score.py
+├── scripts/                     # ingest.py, export_docx.py, quality_score.py, check_response_claims.py
 ├── quality_reports/             # Plans, session logs, merge reports
 ├── explorations/                # Research sandbox
 ├── templates/                   # reference.docx, journal-requirements.yml, etc.
@@ -56,6 +59,11 @@ python scripts/export_docx.py outputs/journal/working.md outputs/journal/manuscr
 
 # Compliance quality score
 python scripts/quality_score.py outputs/journal/manuscript_formatted.md --rubric manuscript
+
+# Peer-review revision (/respond-to-reviewers)
+python scripts/check_response_claims.py --response revisions/journal/R1/response_to_reviewers.md --manuscript revisions/journal/R1/manuscript_revised.md --strict
+python scripts/quality_score.py revisions/journal/R1/response_to_reviewers.md --rubric response
+python scripts/export_docx.py revisions/journal/R1/manuscript_revised.md revisions/journal/R1/manuscript_revised_highlighted.docx --revisions highlight
 
 # Generate reference.docx template (run once to set up)
 pandoc --print-default-data-file reference.docx > templates/reference.docx
@@ -81,6 +89,7 @@ pandoc --print-default-data-file reference.docx > templates/reference.docx
 | `/format-manuscript [file] [journal]` | Full formatting pipeline (ingest → reformat → export) |
 | `/validate-compliance [file] [journal]` | Standalone compliance check on formatted output |
 | `/generate-report [journal]` | Generate formatting_report.md with before/after diff |
+| `/respond-to-reviewers [letter] [journal] [round]` | Peer-review revision: classify comments, approved edits, response letter, highlighted docx |
 | `/proofread [file]` | Grammar/typo/consistency review |
 | `/review-paper [file]` | Substantive manuscript review |
 | `/commit [msg]` | Stage, commit, push |

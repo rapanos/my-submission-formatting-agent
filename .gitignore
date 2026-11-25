@@ -57,3 +57,5 @@ Thumbs.db
 # Manuscript privacy — never push manuscripts or formatted outputs to GitHub
 manuscripts/
 outputs/
+# Peer-review revisions (reviewer reports are confidential)
+revisions/

@@ -187,6 +187,7 @@ The ingest script also supports a `--bibliography` flag to override the `.bib` f
 | `/format-manuscript [file] [journal]` | Full formatting pipeline |
 | `/validate-compliance [file] [journal]` | Standalone compliance check on any formatted file |
 | `/generate-report [journal]` | Generate formatting report with before/after diff |
+| `/respond-to-reviewers [letter] [journal] [round]` | Peer-review revision: response letter, approved edits, highlighted docx |
 | `/proofread [file]` | Grammar, typos, draft marker check |
 | `/review-paper [file]` | Substantive manuscript review (argument, methods, referee objections) |
 | `/validate-bib` | Cross-reference citations against bibliography |
@@ -195,10 +196,33 @@ The ingest script also supports a `--bibliography` flag to override the `.bib` f
 
 ---
 
+## Responding to reviewers
+
+After peer review, `/respond-to-reviewers` turns the decision letter into a complete revision package. It follows the same rules as formatting: nothing scientific changes without the author's approval.
+
+1. **Parse and classify.** Every comment gets an ID (`E-1`, `R1-1`, `R1-3a`), a type (MAJ / MIN / REB) and a triage category. **You confirm the classifications** before anything else happens.
+2. **Propose, then approve.** For each comment the agent proposes an exact old → new edit, or a rationale for deferring or disagreeing. Requests for new data, analyses or figures are marked `BLOCKED — author must supply`; numbers are never invented.
+3. **Apply approved edits only.** Approved edits go into `revisions/[journal]/R1/manuscript_revised.md`, wrapped in `<!-- REVISION R1-2 -->` markers. The original manuscript and the version the reviewers saw stay untouched.
+4. **Draft the letters.** You get a point-by-point response, a cover letter (R1) and a change log, all marked DRAFT.
+5. **Verify.** `check_response_claims.py` confirms that every text quoted as "now reads…" exists in the revised manuscript. A separate `claim-verifier` agent, which never sees the draft letter, checks every claimed change.
+6. **Export and score.** Outputs are a clean `.docx`, a `.docx` with the changes highlighted in yellow, and a `--rubric response` score that must reach 80/90.
+
+```
+/respond-to-reviewers revisions/geoheritage/R1/decision_letter.md geoheritage R1
+```
+
+`revisions/` is gitignored, because reviewer reports are confidential.
+
+> **PT:** Depois da revisão por pares, `/respond-to-reviewers` organiza e classifica os comentários e propõe as mudanças para você aprovar. Só aplica as aprovadas, numa cópia marcada. Depois escreve a carta de resposta ponto a ponto, confere cada afirmação da carta contra o manuscrito e gera o .docx limpo e o .docx com as mudanças em amarelo.
+
+The workflow is adapted from [Aperivue/medsci-skills `revise`](https://github.com/Aperivue/medsci-skills) and [pedrohcgs/claude-code-my-workflow `respond-to-referees`](https://github.com/pedrohcgs/claude-code-my-workflow), both MIT (see `scripts/THIRD_PARTY_LICENSES.md`).
+
+---
+
 ## What's included
 
 <details>
-<summary><strong>7 agents, 11 skills, 10 rules, 4 hooks</strong> (click to expand)</summary>
+<summary><strong>8 agents, 13 skills, 13 rules, 4 hooks</strong> (click to expand)</summary>
 
 ### Agents (`.claude/agents/`)
 
@@ -210,6 +234,7 @@ The ingest script also supports a `--bibliography` flag to override the `.bib` f
 | `compliance-checker` | PASS/WARN/FAIL checklist for every journal requirement |
 | `proofreader` | Grammar, typos, draft marker integrity, formatting artifacts |
 | `verifier` | Checks output files exist, are valid, and quality score passes |
+| `claim-verifier` | Fresh-context check that every change a response letter claims is really in the revised manuscript |
 | `domain-reviewer` | **Template** — customise for your field's substance review |
 
 ### Rules (`.claude/rules/`)
@@ -233,6 +258,7 @@ The ingest script also supports a `--bibliography` flag to override the `.bib` f
 | `quality-gates` | `outputs/` | 80/90/95 scoring thresholds, manuscript rubric |
 | `proofreading-protocol` | `outputs/`, `manuscripts/` | Propose-first, then apply with approval |
 | `pdf-processing` | `master_supporting_docs/` | Safe large PDF handling |
+| `revision-handling` | `revisions/` | Approved, marker-wrapped edits only; never invent numbers or references |
 
 ### Templates (`templates/`)
 
@@ -244,6 +270,11 @@ The ingest script also supports a `--bibliography` flag to override the `.bib` f
 | `session-log.md` | Structured session logging format |
 | `quality-report.md` | Merge-time quality report format |
 | `requirements-spec.md` | MUST/SHOULD/MAY requirements framework |
+| `comment-matrix.md` | Reviewer comment tracker: ID, type, coverage, approval |
+| `response-to-reviewers.md` | Point-by-point response letter skeleton |
+| `revision-cover-letter.md` | Cover letter to the editor (R1) |
+| `revision-change-log.md` | One row per approved manuscript change |
+| `references/r2r_voice.md` | Response-letter voice guide (avoids AI-sounding letters) |
 
 </details>
 
@@ -262,10 +293,18 @@ my-submission-formatting-agent/
 │       ├── manuscript_formatted.docx   # Formatted Word document
 │       ├── compliance_checklist.md     # PASS/WARN/FAIL per requirement
 │       └── formatting_report.md        # Full change summary
+├── revisions/            # Peer-review rounds (gitignored)
+│   └── [journal-name]/R1/
+│       ├── decision_letter.md          # Reviewer comments (verbatim)
+│       ├── comment_matrix.md           # Classification + approvals
+│       ├── manuscript_revised.md       # Approved edits in REVISION markers
+│       ├── response_to_reviewers.md    # Point-by-point letter
+│       └── manuscript_revised_highlighted.docx
 ├── scripts/
 │   ├── ingest.py          # Manuscript → markdown (pandoc wrapper)
-│   ├── export_docx.py     # Markdown → docx (pandoc wrapper)
-│   └── quality_score.py   # Compliance scoring (--rubric manuscript)
+│   ├── export_docx.py     # Markdown → docx (pandoc wrapper; --revisions clean|highlight)
+│   ├── quality_score.py   # Scoring (--rubric manuscript | response)
+│   └── check_response_claims.py  # Response-letter claims vs revised manuscript
 ├── templates/             # Reference docs and report templates
 └── .claude/               # Rules, skills, agents, hooks
 ```

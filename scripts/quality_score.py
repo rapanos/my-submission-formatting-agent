@@ -10,6 +10,9 @@ Usage:
     python scripts/quality_score.py outputs/journal/manuscript_formatted.md --rubric manuscript
     python scripts/quality_score.py outputs/journal/manuscript_formatted.md --rubric manuscript --journal lancet-eb
 
+    # Response-to-reviewers letter (/respond-to-reviewers)
+    python scripts/quality_score.py revisions/journal/R1/response_to_reviewers.md --rubric response
+
     # Legacy course material scoring
     python scripts/quality_score.py Quarto/Lecture6_Topic.qmd
     python scripts/quality_score.py Slides/Lecture01_Topic.tex
@@ -104,6 +107,28 @@ MANUSCRIPT_RUBRIC = {
     'minor': {
         'heading_case_inconsistency': {'points': 2},
         'formatting_artifact': {'points': 1},
+    }
+}
+
+RESPONSE_RUBRIC = {
+    'critical': {
+        'comment_without_response': {'points': 15},     # per matrix comment
+        'response_claim_unverified': {'points': 25},    # per major verdict: blocks the commit gate alone
+        'edit_without_approval': {'points': 25},        # REVISION marker for a non-approved comment: blocks alone
+        'unclosed_marker': {'points': 10},              # DRAFT or REVISION
+    },
+    'major': {
+        'missing_response_or_changes': {'points': 5},   # per block
+        'addressed_without_location': {'points': 5},    # Addressed/Partially but no change cited
+        'blocked_comment_pending': {'points': 5},       # per BLOCKED / pending response
+        'approved_edit_not_applied': {'points': 5},
+        'orphan_response_block': {'points': 5},         # block ID not in matrix
+    },
+    'minor': {
+        'repeated_opener': {'points': 2},               # per opener used 3+ times
+        'section_symbol': {'points': 1},                # per '§'
+        'tooling_language': {'points': 1},              # grep / v2 adds / FIX-n
+        'quote_unresolved': {'points': 1},              # minor claim-check verdict
     }
 }
 
@@ -400,6 +425,9 @@ class IssueDetector:
 class ManuscriptScorer:
     """Score manuscript compliance against journal requirements."""
 
+    RUBRIC_NAME = 'manuscript'
+    TITLE = 'Manuscript Compliance Score'
+
     def __init__(self, filepath: Path, journal: Optional[str] = None, verbose: bool = False):
         self.filepath = filepath
         self.journal = journal
@@ -662,7 +690,7 @@ class ManuscriptScorer:
             'score': self.score,
             'status': status,
             'auto_fail': self.auto_fail,
-            'rubric': 'manuscript',
+            'rubric': self.RUBRIC_NAME,
             'journal': self.journal,
             'issues': {**self.issues, 'counts': counts},
             'thresholds': THRESHOLDS,
@@ -671,7 +699,7 @@ class ManuscriptScorer:
     def print_report(self, summary_only: bool = False) -> None:
         """Print formatted compliance report."""
         report = self._generate_report()
-        print(f"\n# Manuscript Compliance Score: {self.filepath.name}\n")
+        print(f"\n# {self.TITLE}: {self.filepath.name}\n")
 
         status_label = {
             'EXCELLENCE': '[EXCELLENCE]', 'PR_READY': '[PASS]',
@@ -680,7 +708,11 @@ class ManuscriptScorer:
         print(f"## Overall Score: {report['score']}/100 {status_label.get(report['status'], '')}")
         if self.journal:
             print(f"**Journal:** {self.journal}")
-        if not self.guidelines and self.journal:
+        if self.RUBRIC_NAME != 'manuscript':
+            pass
+        elif not self.guidelines and self.journal and not YAML_AVAILABLE:
+            print("**Note:** PyYAML not installed (pip install pyyaml) — journal checks skipped, only generic checks run")
+        elif not self.guidelines and self.journal:
             print(f"**Note:** guidelines/{self.journal}.yml not found — only generic checks run")
         elif not self.journal:
             print("**Note:** No journal specified — only generic checks run (use --journal [name])")
@@ -715,6 +747,178 @@ class ManuscriptScorer:
         elif report['status'] == 'COMMIT_READY':
             gap = THRESHOLDS['pr'] - report['score']
             print(f"\n**Status:** Ready to commit. Need +{gap} points for PR/delivery threshold.")
+
+
+# ==============================================================================
+# RESPONSE-TO-REVIEWERS SCORER (/respond-to-reviewers)
+# ==============================================================================
+
+COMMENT_ID = r'(?:E|R\d+)-\d+[a-z]?'
+
+
+class ResponseScorer(ManuscriptScorer):
+    """Score a response-to-reviewers letter against its comment matrix and the
+    revised manuscript (siblings in revisions/[journal]/R[n]/ by default)."""
+
+    RUBRIC_NAME = 'response'
+    TITLE = 'Response-to-Reviewers Score'
+
+    def __init__(self, filepath: Path, matrix: Optional[Path] = None,
+                 manuscript: Optional[Path] = None, verbose: bool = False):
+        super().__init__(filepath, journal=None, verbose=verbose)
+        self.matrix_path = matrix or filepath.parent / 'comment_matrix.md'
+        self.manuscript_path = manuscript or filepath.parent / 'manuscript_revised.md'
+
+    def _add(self, severity: str, key: str, description: str, details: str) -> None:
+        pts = RESPONSE_RUBRIC[severity][key]['points']
+        self.issues[severity].append({'type': key, 'description': description,
+                                      'details': details, 'points': pts})
+        self.score -= pts
+
+    def _parse_matrix(self) -> Dict[str, Dict]:
+        rows: Dict[str, Dict] = {}
+        if not self.matrix_path.exists():
+            return rows
+        header = None
+        for line in self.matrix_path.read_text(encoding='utf-8').splitlines():
+            if not line.strip().startswith('|'):
+                header = None if not line.strip() else header
+                continue
+            cells = [c.strip() for c in line.strip().strip('|').split('|')]
+            if cells and cells[0].upper() == 'ID':
+                header = [c.lower() for c in cells]
+                continue
+            if header and cells and re.fullmatch(COMMENT_ID, cells[0]):
+                rows[cells[0]] = dict(zip(header, cells))
+        return rows
+
+    def _parse_blocks(self, content: str) -> Dict[str, str]:
+        blocks: Dict[str, str] = {}
+        pat = re.compile(r'^#{2,4}\s+Comment\s+(' + COMMENT_ID + r')\b.*$', re.MULTILINE)
+        matches = list(pat.finditer(content))
+        for i, m in enumerate(matches):
+            end = matches[i + 1].start() if i + 1 < len(matches) else len(content)
+            nxt = re.search(r'^##\s', content[m.end():end], re.MULTILINE)
+            if nxt:
+                end = m.end() + nxt.start()
+            blocks[m.group(1)] = content[m.end():end]
+        return blocks
+
+    @staticmethod
+    def _field(block: str, name: str) -> Optional[str]:
+        m = re.search(r'\*\*' + name + r':\*\*\s*(.*?)(?=\n\s*\*\*[A-Z][^*]*:\*\*|\Z)',
+                      block, re.DOTALL | re.IGNORECASE)
+        return m.group(1).strip() if m else None
+
+    def score_response(self) -> Dict:
+        content = self.filepath.read_text(encoding='utf-8')
+        matrix = self._parse_matrix()
+        blocks = self._parse_blocks(content)
+
+        if not matrix:
+            self.issues['major'].append({
+                'type': 'no_matrix', 'description': 'Comment matrix not found or empty',
+                'details': f'Expected {self.matrix_path}; coverage checks skipped', 'points': 0})
+
+        # 1. Markers
+        open_m, close_m = self._check_draft_markers(content)
+        if open_m != close_m:
+            self._add('critical', 'unclosed_marker', 'Unbalanced DRAFT markers in letter',
+                      f'{open_m} open vs {close_m} close')
+        man_text = self.manuscript_path.read_text(encoding='utf-8') \
+            if self.manuscript_path.exists() else ''
+        rev_ids = re.findall(r'<!--\s*REVISION\s+(' + COMMENT_ID + r')\s*-->', man_text)
+        # Balance counts every marker (incl. author-initiated IDs such as A-3), matching export_docx.
+        n_open = len(re.findall(r'<!--\s*REVISION\s+[A-Za-z0-9.\-]+\s*-->', man_text))
+        n_close = len(re.findall(r'<!--\s*END REVISION\s*-->', man_text))
+        if n_open != n_close:
+            self._add('critical', 'unclosed_marker', 'Unbalanced REVISION markers in manuscript',
+                      f'{n_open} open vs {n_close} close in {self.manuscript_path.name}')
+
+        # 2. Coverage: every matrix comment answered, every block known
+        for cid, row in matrix.items():
+            if cid not in blocks:
+                self._add('critical', 'comment_without_response',
+                          f'{cid} has no response block', row.get('summary (one line)', ''))
+        for cid in blocks:
+            if matrix and cid not in matrix:
+                self._add('major', 'orphan_response_block',
+                          f'{cid} answered in letter but not in comment matrix', '')
+
+        # 3. Per-block content
+        for cid, block in blocks.items():
+            row = matrix.get(cid, {})
+            coverage = row.get('coverage', '').lower()
+            resp = self._field(block, 'Response')
+            changes = self._field(block, 'Changes in the manuscript')
+            if not resp or not changes:
+                self._add('major', 'missing_response_or_changes',
+                          f'{cid} lacks **Response:** or **Changes in the manuscript:**', '')
+                continue
+            if 'blocked' in coverage or re.search(r'\[AUTHOR:\s*response pending', resp, re.I):
+                self._add('major', 'blocked_comment_pending', f'{cid} still BLOCKED / pending',
+                          'Needs author-supplied data or decision before delivery')
+            elif coverage.startswith(('addressed', 'partially')) and \
+                    re.match(r'none\b', changes, re.I):
+                self._add('major', 'addressed_without_location',
+                          f'{cid} marked {row.get("coverage")} but no manuscript change cited', '')
+
+        # 4. Approval discipline (rule: revision-handling.md)
+        for cid in set(rev_ids):
+            if matrix and matrix.get(cid, {}).get('approved', '').upper() != 'YES':
+                self._add('critical', 'edit_without_approval',
+                          f'REVISION {cid} in manuscript but not approved in matrix', '')
+        for cid, row in matrix.items():
+            if row.get('approved', '').upper() == 'YES' and \
+                    row.get('coverage', '').lower().startswith(('addressed', 'partially')) and \
+                    cid not in rev_ids and self.manuscript_path.exists():
+                self._add('major', 'approved_edit_not_applied',
+                          f'{cid} approved and marked addressed, but no REVISION {cid} marker', '')
+
+        # 5. Claim verification (vendored medsci-skills checker)
+        if self.manuscript_path.exists():
+            try:
+                sys.path.insert(0, str(Path(__file__).resolve().parent))
+                from check_response_claims import build_report  # type: ignore
+                rep = build_report(self.filepath, self.manuscript_path)
+                for f in rep['findings']:
+                    anchor = f.get('claimed_text') or ', '.join(f.get('claimed_citation', []))
+                    if f['severity'] == 'major':
+                        self._add('critical', 'response_claim_unverified',
+                                  f"{f['verdict']}: claim not found in revised manuscript",
+                                  anchor[:120])
+                    elif f['verdict'] == 'RESPONSE_QUOTE_UNRESOLVED':
+                        self._add('minor', 'quote_unresolved',
+                                  'Quoted text only approximately matches (check by eye)',
+                                  anchor[:120])
+            except Exception as e:  # keep scoring if the checker cannot run
+                self.issues['major'].append({'type': 'claim_check_error', 'points': 0,
+                                             'description': 'Claim check could not run',
+                                             'details': str(e)})
+        else:
+            self.issues['major'].append({
+                'type': 'no_manuscript', 'points': 0,
+                'description': 'Revised manuscript not found; claim check skipped',
+                'details': str(self.manuscript_path)})
+
+        # 6. Voice
+        body = re.sub(r'^>.*$', '', content, flags=re.MULTILINE)  # skip reviewer quotes
+        for _ in range(body.count('§')):
+            self._add('minor', 'section_symbol', "'§' symbol in letter", 'Use section names')
+        for m in re.finditer(r'\bgrep\b|\bv\d+ (?:adds|removes|revises)\b|\bFIX-\d+\b', body, re.I):
+            self._add('minor', 'tooling_language', 'Editing-mechanism language', m.group(0))
+        openers: Dict[str, int] = {}
+        for block in blocks.values():
+            resp = self._field(block, 'Response') or ''
+            first = re.split(r'(?<=[.!?])\s', resp.strip(), maxsplit=1)[0].lower()
+            if first:
+                openers[first] = openers.get(first, 0) + 1
+        for opener, n in openers.items():
+            if n >= 3:
+                self._add('minor', 'repeated_opener', f'Opener repeated {n} times', opener[:80])
+
+        self.score = max(0, self.score)
+        return self._generate_report()
 
 
 # ==============================================================================
@@ -1056,8 +1260,13 @@ Exit Codes:
     )
 
     parser.add_argument('filepaths', type=Path, nargs='+', help='Path(s) to file(s) to score')
-    parser.add_argument('--rubric', choices=['manuscript', 'auto'], default='auto',
-                        help='Scoring rubric: "manuscript" for compliance scoring, "auto" to detect from extension')
+    parser.add_argument('--rubric', choices=['manuscript', 'response', 'auto'], default='auto',
+                        help='Scoring rubric: "manuscript" for compliance scoring, "response" for a '
+                             'response-to-reviewers letter, "auto" to detect from extension')
+    parser.add_argument('--matrix', type=Path, default=None,
+                        help='(response rubric) comment matrix; default: comment_matrix.md next to the letter')
+    parser.add_argument('--manuscript', type=Path, default=None,
+                        help='(response rubric) revised manuscript; default: manuscript_revised.md next to the letter')
     parser.add_argument('--journal', type=str, default=None,
                         help='Journal name (loads guidelines/[journal].yml for compliance checks)')
     parser.add_argument('--summary', action='store_true', help='Show summary only')
@@ -1083,7 +1292,13 @@ Exit Codes:
                  str(filepath).startswith('outputs'))
             )
 
-            if use_manuscript:
+            if args.rubric == 'response':
+                scorer = ResponseScorer(filepath, matrix=args.matrix,
+                                        manuscript=args.manuscript, verbose=args.verbose)
+                report = scorer.score_response()
+                if not args.json:
+                    scorer.print_report(summary_only=args.summary)
+            elif use_manuscript:
                 scorer = ManuscriptScorer(filepath, journal=args.journal, verbose=args.verbose)
                 report = scorer.score_manuscript()
                 if not args.json:

@@ -84,3 +84,7 @@ When a mistake is corrected, append a `[LEARN:category]` entry below.
 [LEARN:manuscript] quality_score.py supports --rubric manuscript for compliance scoring. Use --journal [name] to load guidelines for section-order and word-count checks.
 
 [LEARN:manuscript] Word count violations are WARN not FAIL — authors decide what to cut. Never auto-delete content to meet limits.
+
+[LEARN:workflow] A core invariant ("never alter content") can admit a necessary exception (peer-review revision) only as a bounded, auditable one: author approves each exact edit, edits live in a separate copy, every edit is wrapped in an ID'd marker, and a scorer penalises any marker without a matching approval.
+
+[LEARN:quality] Response letters are verified against the revised manuscript, not against themselves: a deterministic quote/citation check plus a fresh-context verifier that never sees the draft letter. A single fabricated "we added X" claim blocks the commit gate.
